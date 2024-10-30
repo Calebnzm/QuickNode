@@ -3,6 +3,8 @@ import bodyParser from 'body-parser';
 import connectDB from './database.js';
 import userRoutes from './routes/userRoutes.js';
 import dotenv from 'dotenv';
+import cors from 'cors';
+import morgan from 'morgan';
 
 
 dotenv.config();
@@ -21,7 +23,6 @@ app.use(morgan('dev')); // Logging middleware
 
 
 app.use(express.json());
-app.use(CORS());
 
 connectDB();
 
