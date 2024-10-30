@@ -59,4 +59,22 @@ router.post('/p2p', async (req, res) =>{
     }
 });
 
+router.get('/dashboard/:uniqueID', async (req, res) => {
+    try {
+        const { uniqueID } = req.params;
+        // Implement these functions in your database service
+        const user = await User.findOne({ uniqueID });
+        const transactions = await getTransactionsByUser(uniqueID);
+        const balance = await getUserBalance(uniqueID);
+
+        res.json({
+            success: true,
+            transactions,
+            balance
+        });
+    } catch (error) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+});
+
 export default router;
