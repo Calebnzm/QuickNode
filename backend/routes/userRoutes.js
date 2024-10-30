@@ -50,6 +50,16 @@ router.post('/send', async (req, res) => {
     }
 });
 
+router.post('/p2p', async (req, res) =>{
+    const { senderUniqueId, recepientUniqueId, amount } = req.query;
+    try {
+        await sendP2P(senderUniqueId, recepientUniqueId, amount);
+        res.status(200).json({ success: true, message: 'P2P transaction completed.'});
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
 router.get('/dashboard/:uniqueID', async (req, res) => {
     try {
         const { uniqueID } = req.params;
