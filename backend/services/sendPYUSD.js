@@ -1,5 +1,6 @@
-import { Connection, Keypair, Transaction, PublicKey, sendAndConfirmTransaction } from '@solana/web3.js';
-import { TOKEN_PROGRAM_ID, getOrCreateAssociatedTokenAccount, createAssociatedTokenAccountIdempotent, createTransferInstruction, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+import { TOKEN_PROGRAM_ID, AccountLayout, TOKEN_2022_PROGRAM_ID, createMint, getOrCreateAssociatedTokenAccount, mintTo, transfer, transferCheckedWithFee, transferChecked } from '@solana/spl-token';
+
 import User from '../models/User.js';
 
 async function sendPYUSD(senderUniqueId, recipientPublicKeyString, amount) {
@@ -8,93 +9,76 @@ async function sendPYUSD(senderUniqueId, recipientPublicKeyString, amount) {
 
         console.log(senderUniqueId)
         // Find sender's user info
-        const sender = await User.find({ uniqueId: senderUniqueId });
-        // if (!sender) {
-        //     throw new Error('Sender not found.');
-        // }
+        const sender = await User.find({ uniqueID: senderUniqueId });
 
-        // Decrypt sender's private key and create Keypair
-        // console.log(sender);
-        // const privateKey = sender.privateKey;
-        const privateKey = "6414d3d7125738c39150f78fb110e9e68e59bad05b9c5ab76583663d0853c452fb6a538afd21b50c2c581e7267cd62590121656d366a32b3c260405df4447931";
+        try {
+            // Connect to cluster
+            const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
-        const senderKeypair = Keypair.fromSecretKey(Buffer.from(privateKey, 'hex'));
+            const privateKey = "6414d3d7125738c39150f78fb110e9e68e59bad05b9c5ab76583663d0853c452fb6a538afd21b50c2c581e7267cd62590121656d366a32b3c260405df4447931";
+            const privateKey2 = "f6c78d781188a3b7c54003aed64489de7b8bcf03079d672c30d154609ffe45ad7c30683c5cf43ad3ab6c1b107f43e7699921ca6ca74083781b8d49ca7c747254";
+            const fromWallet = Keypair.fromSecretKey(Buffer.from(privateKey, 'hex'));
+            const toWallet = Keypair.fromSecretKey(Buffer.from(privateKey2, 'hex'));
 
-        const senderPublicKey = new PublicKey("HvRNKv5ZiFAxczYX2ksBizYNKGXY74LTv41pRCWjbPFW");
+            const tokenAccounts = await connection.getTokenAccountsByOwner(
+                new PublicKey("HvRNKv5ZiFAxczYX2ksBizYNKGXY74LTv41pRCWjbPFW"),
+                {
+                    programId: TOKEN_2022_PROGRAM_ID,
+                }
+            );
 
-        // Replace with the actual PYUSD mint address
-        const PYUSD_MINT_ADDRESS = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM'); 
+            console.log("Token                                         Balance");
+            console.log("------------------------------------------------------------");
+            tokenAccounts.value.forEach((tokenAccount) => {
+                const accountData = AccountLayout.decode(tokenAccount.account.data);
+                console.log(`${new PublicKey(accountData.mint)}   ${accountData.amount}`);
+            })
+            console.log("------------------------------------------------------------");
 
-        console.log(recipientPublicKeyString);
-        const recipientPublicKey = new PublicKey(recipientPublicKeyString);
 
-        // Get or create the sender's associated token account
-        // const senderTokenAccount = await getOrCreateAssociatedTokenAccount(
-        //     connection,
-        //     senderKeypair,
-        //     PYUSD_MINT_ADDRESS,
-        //     senderPublicKey
-        // );
+            const PYUSD_MINT_ADDRESS = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM');
 
-        const senderTokenAccount = await createAssociatedTokenAccountIdempotent(
-            connection,
-            senderKeypair,
-            PYUSD_MINT_ADDRESS,
-            senderPublicKey,
-            {}, 
-            TOKEN_2022_PROGRAM_ID
-        );
+            // Get the token account of the fromWallet address, and if it does not exist, create it
+            const fromTokenAccount = await getOrCreateAssociatedTokenAccount(
+                connection,
+                fromWallet,
+                PYUSD_MINT_ADDRESS,
+                fromWallet.publicKey,
+                undefined,
+                undefined,
+                undefined,
+                TOKEN_2022_PROGRAM_ID,
+                // associatedTokenProgramId: ASSOCIATED_TOKEN_PROGRAM_ID
+            );
 
-        // // Get or create the recipient's associated token account
-        // const recipientTokenAccount = await getOrCreateAssociatedTokenAccount(
-        //     connection,
-        //     senderKeypair,
-        //     PYUSD_MINT_ADDRESS,
-        //     new PublicKey(recipientPublicKey)
-        // );
+            // Get the token account of the toWallet address, and if it does not exist, create it
+            const toTokenAccount = await getOrCreateAssociatedTokenAccount(connection,
+                fromWallet,
+                PYUSD_MINT_ADDRESS,
+                new PublicKey(recipientPublicKeyString),
+                undefined, undefined, undefined, TOKEN_2022_PROGRAM_ID);
 
-        const recipientTokenAccount = await createAssociatedTokenAccountIdempotent(
-            connection,
-            senderKeypair,
-            PYUSD_MINT_ADDRESS,
-            recipientPublicKey,
-            {}, 
-            TOKEN_2022_PROGRAM_ID
-        );
+            console.log('Reached transfer')
 
-        
-        console.log(`Token addresses ${senderTokenAccount}, ${recipientTokenAccount}, ${senderKeypair.publicKey}, ${amount}`)
-        // Create the transfer instruction
-        // const transferInstruction = createTransferInstruction(
-        //     senderTokenAccount.address,
-        //     recipientTokenAccount.address,
-        //     senderKeypair.publicKey,
-        //     amount,
-        //     [],
-        //     TOKEN_2022_PROGRAM_ID
-        // );
 
-        // // Create and send the transaction
-        // const transaction = new Transaction().add(transferInstruction);
-        // const signature = await connection.sendTransaction(transaction, [senderKeypair]);
-        // console.log("Transaction sent:", signature);
+            let signature = await transferChecked(
+                connection,
+                fromWallet,
+                fromTokenAccount.address,
+                PYUSD_MINT_ADDRESS,
+                toTokenAccount.address,
+                fromWallet.publicKey,
+                amount * 1000000,
+                6,
+                undefined,
+                undefined,
+                TOKEN_2022_PROGRAM_ID,
+            );
+            console.log('transfer tx:', signature);
+        } catch (error) {
+            console.error("Transaction failed with error:", error);
+        }
 
-        // // Confirm the transaction
-        // await connection.confirmTransaction(signature);
-        // console.log("Transaction confirmed.");
-
-        const transaction = new Transaction().add(
-            createTransferInstruction(
-              senderTokenAccount,
-              recipientTokenAccount,
-              senderPublicKey,
-              1,
-            ),
-          );
-         
-          // Sign transaction, broadcast, and confirm
-          console.log(senderKeypair);
-          await sendAndConfirmTransaction(connection, transaction, [senderKeypair]);
     } catch (error) {
         console.error('Error sending PYUSD', error);
         throw error;
