@@ -18,7 +18,7 @@ function Dashboard() {
             status: 'completed'
         },
         {
-            _id: '2', 
+            _id: '2',
             date: '2023-10-02',
             type: 'Receive',
             amount: 250.50,
@@ -26,7 +26,7 @@ function Dashboard() {
         },
         {
             _id: '3',
-            date: '2023-10-03', 
+            date: '2023-10-03',
             type: 'Send',
             amount: 75.25,
             status: 'pending'
@@ -44,22 +44,36 @@ function Dashboard() {
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
-        console.log('This is the user:', user);
+        console.log('This is the user on dashboard:', user);
         if (!user) {
             navigate('/login');
             return;
         }
-        
+
         setUserInfo(user);
-        fetchUserData(user.uniqueId);
-        // setTransactions(mockTransactions);
-        // setBalance(mockBalance);
+        
+        // Initial fetch
+        fetchUserData(user.uniqueID);
+        
+        // Set up interval for periodic fetching (every 5 seconds)
+        const intervalId = setInterval(() => {
+            fetchUserData(user.uniqueID);
+        }, 4000); // 5000ms = 5 seconds
+
+        // Cleanup function to clear interval when component unmounts
+        return () => clearInterval(intervalId);
     }, [navigate]);
 
     const fetchUserData = async (uniqueID) => {
         console.log('This is the uniqueID:', uniqueID);
         try {
-            const response = await axios.get(`http://localhost:5000/api/users/dashboard/${uniqueID}`);
+            const response = await axios.get(`http://localhost:5000/api/users/dashboard/${uniqueID}`, {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache',
+                    'Expires': '0',
+                }
+            });
             setTransactions(response.data.transactions);
             setBalance(response.data.balance);
         } catch (error) {
@@ -76,9 +90,9 @@ function Dashboard() {
                     <div>
                         <h2 className="text-sm font-semibold text-gray-600">Your Public Address</h2>
                         <div className="flex items-center gap-2">
-                            <p className="font-mono text-gray-800">{userInfo.publicAddress || 'No address available'}</p>
-                            <button 
-                                onClick={() => navigator.clipboard.writeText(userInfo.publicAddress)}
+                            <p className="font-mono text-gray-800">{userInfo.publicKey || 'No address available'}</p>
+                            <button
+                                onClick={() => navigator.clipboard.writeText(userInfo.publicKey)}
                                 className="text-blue-600 hover:text-blue-700"
                                 title="Copy to clipboard"
                             >
@@ -95,14 +109,14 @@ function Dashboard() {
                 {/* Balance Card */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Wallet Balance</h2>
-                    <p className="text-4xl font-bold text-blue-600">${balance.toFixed(2)}</p>
+                    <p className="text-4xl font-bold text-blue-600">{balance} PYUSD</p>
                 </div>
 
                 {/* Quick Actions Card */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h2>
                     <div className="flex gap-4">
-                        <button 
+                        <button
                             onClick={() => navigate('/send-money')}
                             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                         >
@@ -135,17 +149,14 @@ function Dashboard() {
                                 </tr>
                             ) : (
                                 transactions.map((tx) => (
-                                    <tr key={tx._id} className="border-b hover:bg-gray-50">
-                                        <td className="p-4">{new Date(tx.date).toLocaleDateString()}</td>
-                                        <td className="p-4">{tx.type}</td>
-                                        <td className="p-4">${tx.amount.toFixed(2)}</td>
+                                    <tr key={tx.signature} className="border-b hover:bg-gray-50">
+                                        <td className="p-4">{new Date(tx.blockTime * 1000).toLocaleDateString()}</td>
+                                        <td className="p-4">{tx.confirmationStatus}</td>
+                                        <td className="p-4">-</td>
                                         <td className="p-4">
-                                            <span className={`px-2 py-1 rounded-full text-sm ${
-                                                tx.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                                tx.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                                'bg-red-100 text-red-800'
-                                            }`}>
-                                                {tx.status}
+                                            <span className={`px-2 py-1 rounded-full text-sm ${tx.err === null ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                                }`}>
+                                                {tx.err === null ? 'Success' : 'Failed'}
                                             </span>
                                         </td>
                                     </tr>

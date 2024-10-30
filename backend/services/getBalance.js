@@ -24,7 +24,7 @@ async function getBalance(privateKey) {
     console.log('This is the token accounts:', tokenAccounts);
     const data = AccountLayout.decode(tokenAccounts?.value[0]?.account?.data)
     if (data) {
-        return data.amount
+        return Number(data.amount.toString()/1000000)
     } else {
         return 0;
     }
