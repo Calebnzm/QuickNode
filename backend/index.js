@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import connectDB from './database.js';
 import userRoutes from './routes/userRoutes.js';
 import dotenv from 'dotenv';
+import CORS from 'cors';
 
 
 dotenv.config();
@@ -11,6 +12,7 @@ const app = express();
 
 
 app.use(express.json());
+app.use(CORS());
 
 connectDB();
 

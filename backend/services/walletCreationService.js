@@ -16,6 +16,7 @@ async function createUserAccount(uniqueId, email, password) {
             privateKey: privateKey,
         });
 
+        console.log(publicKey)
         await user.save();
         console.log('User and wallet created succesfully');
         return { publicKey, uniqueId };
