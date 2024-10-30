@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-// import axios from 'axios';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 function Dashboard() {
@@ -44,32 +44,53 @@ function Dashboard() {
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
+        console.log('This is the user:', user);
         if (!user) {
             navigate('/login');
             return;
         }
         
         setUserInfo(user);
-        // fetchUserData(user.uniqueID);
-        // Instead of fetching, use mock data
-        setTransactions(mockTransactions);
-        setBalance(mockBalance);
+        fetchUserData(user.uniqueId);
+        // setTransactions(mockTransactions);
+        // setBalance(mockBalance);
     }, [navigate]);
 
-    // Removed fetchUserData since we're using mock data
-    // const fetchUserData = async (uniqueID) => {
-    //     try {
-    //         const response = await axios.get(`/api/users/dashboard/${uniqueID}`);
-    //         setTransactions(response.data.transactions);
-    //         setBalance(response.data.balance);
-    //     } catch (error) {
-    //         console.error('Error fetching user data:', error);
-    //     }
-    // };
+    const fetchUserData = async (uniqueID) => {
+        console.log('This is the uniqueID:', uniqueID);
+        try {
+            const response = await axios.get(`http://localhost:5000/api/users/dashboard/${uniqueID}`);
+            setTransactions(response.data.transactions);
+            setBalance(response.data.balance);
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+        }
+    };
     if (!userInfo) return null;
 
     return (
         <div className="max-w-6xl mx-auto p-6">
+            {/* Add Public Address Display */}
+            <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="text-sm font-semibold text-gray-600">Your Public Address</h2>
+                        <div className="flex items-center gap-2">
+                            <p className="font-mono text-gray-800">{userInfo.publicAddress || 'No address available'}</p>
+                            <button 
+                                onClick={() => navigator.clipboard.writeText(userInfo.publicAddress)}
+                                className="text-blue-600 hover:text-blue-700"
+                                title="Copy to clipboard"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Balance Card */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
@@ -106,22 +127,30 @@ function Dashboard() {
                             </tr>
                         </thead>
                         <tbody>
-                            {transactions.map((tx) => (
-                                <tr key={tx._id} className="border-b hover:bg-gray-50">
-                                    <td className="p-4">{new Date(tx.date).toLocaleDateString()}</td>
-                                    <td className="p-4">{tx.type}</td>
-                                    <td className="p-4">${tx.amount.toFixed(2)}</td>
-                                    <td className="p-4">
-                                        <span className={`px-2 py-1 rounded-full text-sm ${
-                                            tx.status === 'completed' ? 'bg-green-100 text-green-800' :
-                                            tx.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                                            'bg-red-100 text-red-800'
-                                        }`}>
-                                            {tx.status}
-                                        </span>
+                            {transactions.length === 0 ? (
+                                <tr>
+                                    <td colSpan="4" className="p-4 text-center text-gray-500">
+                                        No transactions found
                                     </td>
                                 </tr>
-                            ))}
+                            ) : (
+                                transactions.map((tx) => (
+                                    <tr key={tx._id} className="border-b hover:bg-gray-50">
+                                        <td className="p-4">{new Date(tx.date).toLocaleDateString()}</td>
+                                        <td className="p-4">{tx.type}</td>
+                                        <td className="p-4">${tx.amount.toFixed(2)}</td>
+                                        <td className="p-4">
+                                            <span className={`px-2 py-1 rounded-full text-sm ${
+                                                tx.status === 'completed' ? 'bg-green-100 text-green-800' :
+                                                tx.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                {tx.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

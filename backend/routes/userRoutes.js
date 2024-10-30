@@ -1,7 +1,9 @@
 import express from 'express';
 import sendPYUSD from '../services/sendPYUSD.js';
+import getTransactions from '../services/getTransactions.js';
 import createUserAccount from '../services/walletCreationService.js';
-
+import getBalance from '../services/getBalance.js';
+import User from '../models/User.js';
 
 const router = express.Router();
 
@@ -51,10 +53,12 @@ router.post('/send', async (req, res) => {
 router.get('/dashboard/:uniqueID', async (req, res) => {
     try {
         const { uniqueID } = req.params;
-        // Implement these functions in your database service
         const user = await User.findOne({ uniqueID });
-        const transactions = await getTransactionsByUser(uniqueID);
-        const balance = await getUserBalance(uniqueID);
+        console.log('This is the user:', user);
+        const balance = await getBalance(user.privateKey);
+        console.log('This is the balance:', balance);
+        const transactions = await getTransactions(user.privateKey);
+        console.log('This is the transactions:', transactions);
 
         res.json({
             success: true,
@@ -62,6 +66,7 @@ router.get('/dashboard/:uniqueID', async (req, res) => {
             balance
         });
     } catch (error) {
+        console.log('This is the error:', error);
         res.status(400).json({ success: false, message: error.message });
     }
 });
