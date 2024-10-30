@@ -2,6 +2,7 @@ import express from 'express';
 import sendPYUSD from '../services/sendPYUSD.js';
 import createUserAccount from '../services/walletCreationService.js';
 import sendP2P from '../services/p2pTransactions.js';
+import User from '../models/User.js';
 
 
 const router = express.Router();
@@ -24,6 +25,7 @@ router.post('/login', async (req, res) => {
 
     try {
         // You'll need to implement this service
+        console.log("Trying");
         const userInfo = await User.findOne({ uniqueID });
         if (!userInfo) {
             throw new Error('User not found');
@@ -50,7 +52,9 @@ router.post('/send', async (req, res) => {
 });
 
 router.post('/p2p', async (req, res) =>{
-    const { senderUniqueId, recepientUniqueId, amount } = req.query;
+    const { senderUniqueId, recepientUniqueId, amount } = req.body.params;
+    console.log(req.body.params);
+    console.log(req.body.params.recepientUniqueId)
     try {
         await sendP2P(senderUniqueId, recepientUniqueId, amount);
         res.status(200).json({ success: true, message: 'P2P transaction completed.'});

@@ -5,6 +5,8 @@ import User from '../models/User.js';
 
 async function sendP2P(senderUniqueId, recipientUniqueId, amount) {
     try {
+
+        console.log(`Sender ${senderUniqueId}, Recepient ${recipientUniqueId}, Amount ${amount}`);
         // Find sender's user info
         const sender = await User.findOne({ uniqueID: senderUniqueId });
         if (!sender) {
@@ -25,20 +27,20 @@ async function sendP2P(senderUniqueId, recipientUniqueId, amount) {
             const privateKey = sender.privateKey;
             const fromWallet = Keypair.fromSecretKey(Buffer.from(privateKey, 'hex'));
 
-            const tokenAccounts = await connection.getTokenAccountsByOwner(
-                new PublicKey("HvRNKv5ZiFAxczYX2ksBizYNKGXY74LTv41pRCWjbPFW"),
-                {
-                    programId: TOKEN_2022_PROGRAM_ID,
-                }
-            );
+            // const tokenAccounts = await connection.getTokenAccountsByOwner(
+            //     new PublicKey("HvRNKv5ZiFAxczYX2ksBizYNKGXY74LTv41pRCWjbPFW"),
+            //     {
+            //         programId: TOKEN_2022_PROGRAM_ID,
+            //     }
+            // );
 
-            console.log("Token                                         Balance");
-            console.log("------------------------------------------------------------");
-            tokenAccounts.value.forEach((tokenAccount) => {
-                const accountData = AccountLayout.decode(tokenAccount.account.data);
-                console.log(`${new PublicKey(accountData.mint)}   ${accountData.amount}`);
-            })
-            console.log("------------------------------------------------------------");
+            // console.log("Token                                         Balance");
+            // console.log("------------------------------------------------------------");
+            // tokenAccounts.value.forEach((tokenAccount) => {
+            //     const accountData = AccountLayout.decode(tokenAccount.account.data);
+            //     console.log(`${new PublicKey(accountData.mint)}   ${accountData.amount}`);
+            // })
+            // console.log("------------------------------------------------------------");
 
 
             const PYUSD_MINT_ADDRESS = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM');
