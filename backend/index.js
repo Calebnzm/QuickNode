@@ -3,12 +3,21 @@ import bodyParser from 'body-parser';
 import connectDB from './database.js';
 import userRoutes from './routes/userRoutes.js';
 import dotenv from 'dotenv';
-import CORS from 'cors';
 
 
 dotenv.config();
 
 const app = express();
+
+const corsOptions = {
+    origin: 'http://localhost:5173', // Frontend URL
+    methods: ['GET', 'POST'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+
+app.use(cors(corsOptions));
+app.use(morgan('dev')); // Logging middleware
 
 
 app.use(express.json());
