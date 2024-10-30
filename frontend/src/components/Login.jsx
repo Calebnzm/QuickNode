@@ -19,8 +19,9 @@ function Login() {
             });
             if (response.data.success) {
                 setMessage('Login successful!');
+                console.log('This is the login',response.data.userInfo)
                 localStorage.setItem('user', JSON.stringify(response.data.userInfo));
-                navigate('/dashboard');
+                navigate(`/dashboard`);
             } else {
                 setMessage(response.data.message || 'Login failed');
             }
