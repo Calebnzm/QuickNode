@@ -3,26 +3,25 @@ import { TOKEN_PROGRAM_ID, AccountLayout, TOKEN_2022_PROGRAM_ID, createMint, get
 
 import User from '../models/User.js';
 
-async function sendPYUSD(senderUniqueId, recipientPublicKeyString, amount) {
+async function sendP2P(senderUniqueId, recipientUniqueId, amount) {
     try {
-        const connection = new Connection("https://capable-white-dream.solana-devnet.quiknode.pro/573a750d5fd9cfdeed9c430542e2a245dfcd5b7d", 'confirmed');
-
-        // console.log(senderUniqueId)
         // Find sender's user info
         const sender = await User.findOne({ uniqueID: senderUniqueId });
         if (!sender) {
-            throw new Error("Sender not found")
+            throw new Error("Sender not found!");
+        }
+
+        // Find the recepients user info
+        const recepient = await User.findOne({ uniqueID: recipientUniqueId });
+        if (!recepient) {
+            throw new Error("Recepient not found!");
         }
 
         try {
             // Connect to cluster
             const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
-            // const privateKey = "6414d3d7125738c39150f78fb110e9e68e59bad05b9c5ab76583663d0853c452fb6a538afd21b50c2c581e7267cd62590121656d366a32b3c260405df4447931";
-            // const privateKey2 = "f6c78d781188a3b7c54003aed64489de7b8bcf03079d672c30d154609ffe45ad7c30683c5cf43ad3ab6c1b107f43e7699921ca6ca74083781b8d49ca7c747254";
-            // const fromWallet = Keypair.fromSecretKey(Buffer.from(privateKey, 'hex'));
-            // const toWallet = Keypair.fromSecretKey(Buffer.from(privateKey2, 'hex'));
-
+            //Create sender's keypair
             const privateKey = sender.privateKey;
             const fromWallet = Keypair.fromSecretKey(Buffer.from(privateKey, 'hex'));
 
@@ -57,11 +56,12 @@ async function sendPYUSD(senderUniqueId, recipientPublicKeyString, amount) {
                 // associatedTokenProgramId: ASSOCIATED_TOKEN_PROGRAM_ID
             );
 
+            console.log(recepient.publicKey);
             // Get the token account of the toWallet address, and if it does not exist, create it
             const toTokenAccount = await getOrCreateAssociatedTokenAccount(connection,
                 fromWallet,
                 PYUSD_MINT_ADDRESS,
-                new PublicKey(recipientPublicKeyString),
+                new PublicKey(recepient.publicKey),
                 undefined, undefined, undefined, TOKEN_2022_PROGRAM_ID);
 
             console.log('Reached transfer')
@@ -91,4 +91,4 @@ async function sendPYUSD(senderUniqueId, recipientPublicKeyString, amount) {
     }
 }
 
-export default sendPYUSD;
+export default sendP2P;

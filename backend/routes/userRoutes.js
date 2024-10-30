@@ -1,8 +1,6 @@
 import express from 'express';
 import sendPYUSD from '../services/sendPYUSD.js';
 import createUserAccount from '../services/walletCreationService.js';
-import User from '../models/User.js';
-// import { getUserByUniqueID, getTransactionsByUser, getUserBalance } from '../services/databaseService.js';
 
 
 const router = express.Router();
