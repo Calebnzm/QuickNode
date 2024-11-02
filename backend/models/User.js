@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import CryptoJS from "crypto-js";
-import dotenv from "dotenv";
 
 const UserSchema = new mongoose.Schema({
     uniqueID: {
@@ -28,26 +27,26 @@ const UserSchema = new mongoose.Schema({
     },
 });
 
-// UserSchema.pre('save', function (next) {
-//     const user = this;
+UserSchema.pre('save', function (next) {
+    const user = this;
 
-//     if (user.isModified('password')) {
-//         user.password = bcrypt.hashSync(user.password, 10);
-//     }
+    if (user.isModified('password')) {
+        user.password = bcrypt.hashSync(user.password, 10);
+    }
 
-//     if (user.isModified('privateKey')) {
-//         const encryptedPrivateKey = CryptoJS.AES.encrypt(user.privateKey, process.env.SECRET_KEY).toString();
-//         user.privateKey = encryptedPrivateKey;
-//     }
+    if (user.isModified('privateKey')) {
+        const encryptedPrivateKey = CryptoJS.AES.encrypt(user.privateKey, process.env.SECRET_KEY).toString();
+        user.privateKey = encryptedPrivateKey;
+    }
 
-//     next();
-// });
+    next();
+});
 
-// UserSchema.methods.decryptPrivateKey = function () {
-//     const bytes = CryptoJS.AES.decrypt(this.privateKey, process.env.SECRET_KEY);
-//     const originalPrivateKey = bytes.toString(CryptoJS.enc.Utf8);
-//     return originalPrivateKey;
-// };
+UserSchema.methods.decryptPrivateKey = function () {
+    const bytes = CryptoJS.AES.decrypt(this.privateKey, process.env.SECRET_KEY);
+    const originalPrivateKey = bytes.toString(CryptoJS.enc.Utf8);
+    return originalPrivateKey;
+};
 
 const User = mongoose.model('User', UserSchema);
 

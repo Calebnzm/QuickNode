@@ -3,6 +3,9 @@ import sendPYUSD from '../services/sendPYUSD.js';
 import getTransactions from '../services/getTransactions.js';
 import createUserAccount from '../services/walletCreationService.js';
 import sendP2P from '../services/p2pTransactions.js';
+import User from '../models/User.js';
+import getBalance from '../services/getBalance.js';
+import bcrypt from 'bcryptjs';
 
 
 const router = express.Router();
@@ -24,14 +27,13 @@ router.post('/login', async (req, res) => {
     console.log("Form Data Login", req.body.formData);
 
     try {
-        // You'll need to implement this service
         console.log("Trying");
         const userInfo = await User.findOne({ uniqueID });
         if (!userInfo) {
             throw new Error('User not found');
         }
         console.log('User Info', userInfo)
-        if(userInfo.password !== password){
+        if(!await bcrypt.compare(password, userInfo.password)){
             throw new Error('Invalid password');
         }
         res.status(200).json({ success: true, userInfo });
@@ -41,11 +43,11 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/send', async (req, res) => {
-    const { senderUniqueId, recepientPublicKey, amount } = req.query;
-    console.log(recepientPublicKey);
+    const { senderUniqueId, password, amount, recepientUniqueId } = req.body.params;
+    console.log(recepientUniqueId);
     try {
-        await sendPYUSD(senderUniqueId, recepientPublicKey, amount);
-        res.status(200).json({ succes: true, message: 'Transaction completed.' });
+        const transactionHash = await sendPYUSD(senderUniqueId, password, recepientUniqueId, amount);
+        res.status(200).json({ success: true, message: 'Transaction completed.', transactionHash });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }
@@ -63,15 +65,14 @@ router.post('/p2p', async (req, res) =>{
     }
 });
 
+
 router.get('/dashboard/:uniqueID', async (req, res) => {
     try {
         const { uniqueID } = req.params;
-        const user = await User.findOne({ uniqueID });
+        const user = await User.findOne({ uniqueID: uniqueID });
         console.log('This is the user:', user);
-        const balance = await getBalance(user.privateKey);
-        console.log('This is the balance:', balance);
-        const transactions = await getTransactions(user.privateKey);
-        console.log('This is the transactions:', transactions);
+        const balance = await getBalance(user.decryptPrivateKey());
+        const transactions = await getTransactions(user.decryptPrivateKey());
 
         res.json({
             success: true,

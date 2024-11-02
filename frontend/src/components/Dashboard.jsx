@@ -8,39 +8,62 @@ function Dashboard() {
     const [transactions, setTransactions] = useState([]);
     const [balance, setBalance] = useState(0);
 
-    // Mock data
-    const mockTransactions = [
-        {
-            _id: '1',
-            date: '2023-10-01',
-            type: 'Send',
-            amount: 100.00,
-            status: 'completed'
-        },
-        {
-            _id: '2',
-            date: '2023-10-02',
-            type: 'Receive',
-            amount: 250.50,
-            status: 'completed'
-        },
-        {
-            _id: '3',
-            date: '2023-10-03',
-            type: 'Send',
-            amount: 75.25,
-            status: 'pending'
-        },
-        {
-            _id: '4',
-            date: '2023-10-04',
-            type: 'Send',
-            amount: 500.00,
-            status: 'failed'
-        }
-    ];
+    const handleOnRamp = () => {
+        const loadMoonPaySdk = () => {
+            const moonpaySdk = window.MoonPayWebSdk.init({
+                flow: "buy",
+                environment: "sandbox",
+                variant: "overlay",
+                params: {
+                    apiKey: "pk_test_iSatcTAnG1ybd0UlnN5hTxP2Z0a0GNFu",
+                    baseCurrencyCode: "kes",
+                    baseCurrencyAmount: "30",
+                    defaultCurrencyCode: "pyusd",
+                    userAddress: userInfo.publicKey
+                }
+            });
+            moonpaySdk.show();
+        };
 
-    const mockBalance = 1275.25;
+        const script = document.createElement('script');
+        script.src = "https://static.moonpay.com/web-sdk/v1/moonpay-web-sdk.min.js";
+        script.defer = true;
+        script.onload = loadMoonPaySdk;
+        document.body.appendChild(script);
+    };
+
+    const handleOffRamp = () => {
+        const loadMoonPaySdk = () => {
+            const moonpaySdk = window.MoonPayWebSdk.init({
+                flow: "sell",
+                environment: "sandbox",
+                variant: "overlay",
+                params: {
+                    apiKey: "pk_test_iSatcTAnG1ybd0UlnN5hTxP2Z0a0GNFu",
+                    baseCurrencyCode: "pyusd",
+                    baseCurrencyAmount: balance,
+                    userAddress: userInfo.publicKey,
+                    externalCustomerId: userInfo.uniqueID
+                }
+            });
+            moonpaySdk.show();
+        };
+
+        const script = document.createElement('script');
+        script.src = "https://static.moonpay.com/web-sdk/v1/moonpay-web-sdk.min.js";
+        script.defer = true;
+        script.onload = loadMoonPaySdk;
+        document.body.appendChild(script);
+    };
+
+    const handleNavigate = () => {
+        navigate('/send-money', {
+            state: {
+                uniqueID: userInfo.uniqueID
+            }
+        });
+        console.log(userInfo.uniqueID);
+    };
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -51,16 +74,12 @@ function Dashboard() {
         }
 
         setUserInfo(user);
-        
-        // Initial fetch
         fetchUserData(user.uniqueID);
-        
-        // Set up interval for periodic fetching (every 5 seconds)
+
         const intervalId = setInterval(() => {
             fetchUserData(user.uniqueID);
-        }, 4000); // 5000ms = 5 seconds
+        }, 400000);
 
-        // Cleanup function to clear interval when component unmounts
         return () => clearInterval(intervalId);
     }, [navigate]);
 
@@ -80,17 +99,17 @@ function Dashboard() {
             console.error('Error fetching user data:', error);
         }
     };
+
     if (!userInfo) return null;
 
     return (
         <div className="max-w-6xl mx-auto p-6">
-            {/* Add Public Address Display */}
             <div className="bg-white rounded-lg shadow-lg p-4 mb-6">
                 <div className="flex items-center justify-between">
                     <div>
-                        <h2 className="text-sm font-semibold text-gray-600">Your Public Address</h2>
+                        <h2 className="text-sm font-semibold text-gray-600">Your Unique ID</h2>
                         <div className="flex items-center gap-2">
-                            <p className="font-mono text-gray-800">{userInfo.publicKey || 'No address available'}</p>
+                            <p className="font-mono text-gray-800">{userInfo.uniqueID || 'No address available'}</p>
                             <button
                                 onClick={() => navigator.clipboard.writeText(userInfo.publicKey)}
                                 className="text-blue-600 hover:text-blue-700"
@@ -106,37 +125,45 @@ function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Balance Card */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Wallet Balance</h2>
                     <p className="text-4xl font-bold text-blue-600">{balance} PYUSD</p>
                 </div>
 
-                {/* Quick Actions Card */}
                 <div className="bg-white rounded-lg shadow-lg p-6">
                     <h2 className="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h2>
                     <div className="flex gap-4">
                         <button
-                            onClick={() => navigate('/send-money')}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                            onClick={handleNavigate}
+                            className="bg-[#F4A261] text-white px-4 py-2 rounded-md hover:bg-blue-700"
                         >
                             Send Money
                         </button>
-                        {/* Add more action buttons as needed */}
+                        <button
+                            onClick={handleOnRamp}
+                            className="bg-[#F4A261] text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                        >
+                            Credit Wallet
+                        </button>
+                        <button
+                            onClick={handleOffRamp}
+                            className="bg-[#F4A261] text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                        >
+                            Cash Out
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Transaction History */}
             <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-4">Transaction History</h2>
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b">
-                                <th className="text-left p-4">Date</th>
-                                <th className="text-left p-4">Type</th>
-                                <th className="text-left p-4">Amount</th>
+                                <th className="text-left p-4">From Account</th>
+                                <th className="text-left p-4">To Account</th>
+                                <th className="text-left p-4">Amount Transferred</th>
                                 <th className="text-left p-4">Status</th>
                             </tr>
                         </thead>
@@ -148,15 +175,14 @@ function Dashboard() {
                                     </td>
                                 </tr>
                             ) : (
-                                transactions.map((tx) => (
-                                    <tr key={tx.signature} className="border-b hover:bg-gray-50">
-                                        <td className="p-4">{new Date(tx.blockTime * 1000).toLocaleDateString()}</td>
-                                        <td className="p-4">{tx.confirmationStatus}</td>
-                                        <td className="p-4">-</td>
+                                transactions.map((tx, index) => (
+                                    <tr key={index} className="border-b hover:bg-gray-50">
+                                        <td className="p-4">{tx.fromAccount}</td>
+                                        <td className="p-4">{tx.toAccount}</td>
+                                        <td className="p-4">{tx.amountTransferred}</td>
                                         <td className="p-4">
-                                            <span className={`px-2 py-1 rounded-full text-sm ${tx.err === null ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                {tx.err === null ? 'Success' : 'Failed'}
+                                            <span className={`px-2 py-1 rounded-full text-sm ${tx.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                                {tx.success ? 'Success' : 'Failed'}
                                             </span>
                                         </td>
                                     </tr>

@@ -19,7 +19,7 @@ function Login() {
             });
             if (response.data.success) {
                 setMessage('Login successful!');
-                console.log('This is the login',response.data.userInfo)
+                console.log('This is the login', response.data.userInfo);
                 localStorage.setItem('user', JSON.stringify(response.data.userInfo));
                 navigate(`/dashboard`);
             } else {
@@ -38,39 +38,41 @@ function Login() {
     };
 
     return (
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Login</h2>
-            <form onSubmit={handleSubmit} className="space-y-6">
-                <input
-                    type="text"
-                    name="uniqueID"
-                    placeholder="Unique ID"
-                    value={formData.uniqueID}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button 
-                    type="submit"
-                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    Login
-                </button>
-            </form>
-            {message && (
-                <p className={`mt-4 text-center ${message.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>
-                    {message}
-                </p>
-            )}
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+                <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">Login</h2>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <input
+                        type="text"
+                        name="uniqueID"
+                        placeholder="Unique ID"
+                        value={formData.uniqueID}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <input
+                        type="password"
+                        name="password"
+                        placeholder="Password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <button 
+                        type="submit"
+                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    >
+                        Login
+                    </button>
+                </form>
+                {message && (
+                    <p className={`mt-4 text-center ${message.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>
+                        {message}
+                    </p>
+                )}
+            </div>
         </div>
     );
 }
 
-export default Login; 
+export default Login;

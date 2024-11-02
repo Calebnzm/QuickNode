@@ -8,6 +8,7 @@ async function createUserAccount(uniqueId, email, password) {
         const publicKey = keypair.publicKey.toString();
         const privateKey = Buffer.from(keypair.secretKey).toString('hex');
 
+
         const user = new User({
             uniqueID: uniqueId,
             email: email,

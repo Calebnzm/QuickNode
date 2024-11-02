@@ -1,7 +1,8 @@
-import { clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,sendAndConfirmTransaction,,Transaction } from '@solana/web3.js';
+import { clusterApiUrl, Connection, Keypair, LAMPORTS_PER_SOL, PublicKey,sendAndConfirmTransaction,Transaction } from '@solana/web3.js';
 import {createTransferInstruction ,TOKEN_PROGRAM_ID, AccountLayout, TOKEN_2022_PROGRAM_ID, createMint, getOrCreateAssociatedTokenAccount, mintTo, transfer, transferCheckedWithFee, transferChecked } from '@solana/spl-token';
-
 import User from '../models/User.js';
+
+
 
 async function sendP2P(senderUniqueId, recipientUniqueId, amount) {
     try {
@@ -18,30 +19,15 @@ async function sendP2P(senderUniqueId, recipientUniqueId, amount) {
         if (!recepient) {
             throw new Error("Recepient not found!");
         }
+        console.log(`Recepient public key: ${recepient.publicKey}`);
 
         try {
             // Connect to cluster
             const connection = new Connection(clusterApiUrl('devnet'), 'confirmed');
 
             //Create sender's keypair
-            const privateKey = sender.privateKey;
+            const privateKey = sender.decryptPrivateKey();
             const fromWallet = Keypair.fromSecretKey(Buffer.from(privateKey, 'hex'));
-
-            // const tokenAccounts = await connection.getTokenAccountsByOwner(
-            //     new PublicKey("HvRNKv5ZiFAxczYX2ksBizYNKGXY74LTv41pRCWjbPFW"),
-            //     {
-            //         programId: TOKEN_2022_PROGRAM_ID,
-            //     }
-            // );
-
-            // console.log("Token                                         Balance");
-            // console.log("------------------------------------------------------------");
-            // tokenAccounts.value.forEach((tokenAccount) => {
-            //     const accountData = AccountLayout.decode(tokenAccount.account.data);
-            //     console.log(`${new PublicKey(accountData.mint)}   ${accountData.amount}`);
-            // })
-            // console.log("------------------------------------------------------------");
-
 
             const PYUSD_MINT_ADDRESS = new PublicKey('CXk2AMBfi3TwaEL2468s6zP8xq9NxTXjp9gjMgzeUynM');
 
