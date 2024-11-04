@@ -7,7 +7,7 @@ function ConfirmPayment() {
 
     const params = new URLSearchParams(location.search);
     const userUniqueId = params.get("userUniqueId");
-    const merchantPublicKey = params.get("merchantPublicKey");
+    const merchantPublicKey = params.get("merchantUniqueId");
     const amount = params.get("amount");
     const returnUrl = params.get('returnUrl');
     console.log(`Sender ${userUniqueId}, Merchant: ${merchantPublicKey}, amount: ${amount}`);
@@ -21,12 +21,14 @@ function ConfirmPayment() {
         setError("");
     
         try {
+            console.log("Merchant Unique Id: ", merchantPublicKey);
+
             const response = await axios.post("http://localhost:5000/api/users/send", {
                 params: {
                     senderUniqueId: userUniqueId,
                     password,
                     amount,
-                    recepientPublicKey: merchantPublicKey,
+                    recepientUniqueId: merchantPublicKey,
                 }
             });
     

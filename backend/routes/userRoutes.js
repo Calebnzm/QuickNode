@@ -44,7 +44,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/send', async (req, res) => {
     const { senderUniqueId, password, amount, recepientUniqueId } = req.body.params;
-    console.log(recepientUniqueId);
+    console.log("Recipient: ", recepientUniqueId, amount, password, senderUniqueId);
     try {
         const transactionHash = await sendPYUSD(senderUniqueId, password, recepientUniqueId, amount);
         res.status(200).json({ success: true, message: 'Transaction completed.', transactionHash });
